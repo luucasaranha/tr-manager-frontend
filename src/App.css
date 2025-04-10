@@ -17,6 +17,24 @@
   margin-bottom: 2rem;
 }
 
+.edit-button {
+  background: none;
+
+}
+
+.delete-button {
+  background: none;
+}
+
+.edit-button:hover {
+  background: none;
+}
+
+.delete-button:hover {
+  background: none;
+}
+
+
 .add-transaction-button {
   background-color: #2563eb;
   color: white;
@@ -49,7 +67,7 @@
 .finantial-table th,
 .finantial-table td {
   padding: 0.75rem;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #ddd;
 }
 
@@ -66,6 +84,11 @@
 
 .finantial-table tbody tr:hover {
   background-color: #f9f9f9;
+}
+
+
+.finantial-table tbody {
+  text-align: right;
 }
 
 /* Transaction Form Styles */

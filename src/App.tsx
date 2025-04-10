@@ -4,6 +4,7 @@ import './App.css';
 // Types
 interface Transaction {
   id: number;
+  bank: string;
   category: string;
   description: string;
   value: number;
@@ -12,7 +13,7 @@ interface Transaction {
 
 type NewTransaction = Omit<Transaction, 'id'>;
 
-// Props interfaces
+
 interface ModalProps {
   transaction: Transaction;
   onClose: () => void;
@@ -48,7 +49,11 @@ const DeleteButton = ({ transactionId, onDelete }: DeleteButtonProps) => {
       className="delete-button"
       aria-label="Delete transaction"
     >
-      Delete
+      <img
+      src="/delete_ic.png"
+      alt="Delete"
+      className="delete-icon"
+      />
     </button>
   );
 };
@@ -96,6 +101,7 @@ function TransactionModal({ transaction, onClose }: ModalProps) {
 function TransactionForm({ onAdd, onClose, editTransaction }: TransactionFormProps) {
   const initialFormState: NewTransaction = {
     category: '',
+    bank: '',
     description: '',
     value: 0,
     date: new Date().toISOString().split('T')[0]
@@ -191,15 +197,15 @@ function TransactionForm({ onAdd, onClose, editTransaction }: TransactionFormPro
 // Custom hook for transaction management
 function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, category: 'Category 1', description: 'Description 1', value: 100, date: '2025-03-05' },
-    { id: 2, category: 'Category 2', description: 'Description 2', value: 200, date: '2025-03-06' },
-    { id: 3, category: 'Category 3', description: 'Description 3', value: 300, date: '2025-01-07' },
-    { id: 4, category: 'Category 4', description: 'Description 4', value: 400, date: '2025-01-08' },
-    { id: 5, category: 'Category 5', description: 'Description 5', value: 500, date: '2025-01-09' },
-    { id: 6, category: 'Category 6', description: 'Description 6', value: 600, date: '2025-01-10' },
-    { id: 7, category: 'Category 7', description: 'Description 7', value: 700, date: '2025-01-11' },
-    { id: 8, category: 'Category 8', description: 'Description 8', value: 800, date: '2025-01-12' },
-    { id: 9, category: 'Category 9', description: 'Description 9', value: 900, date: '2025-01-03' }
+    { id: 1, bank: 'Nubank', category: 'Category 1', description: 'Description 1', value: 100, date: '2025-03-05' },
+    { id: 2, bank: 'Santander',category: 'Category 2', description: 'Description 2', value: 200, date: '2025-03-06' },
+    { id: 3, bank: 'Itau',category: 'Category 3', description: 'Description 3', value: 300, date: '2025-01-07' },
+    { id: 4, bank: 'Santander',category: 'Category 4', description: 'Description 4', value: 400, date: '2025-01-08' },
+    { id: 5, bank: 'Santander',category: 'Category 5', description: 'Description 5', value: 500, date: '2025-01-09' },
+    { id: 6, bank: 'Santander',category: 'Category 6', description: 'Description 6', value: 600, date: '2025-01-10' },
+    { id: 7, bank: 'Nubank',category: 'Category 7', description: 'Description 7', value: 700, date: '2025-01-11' },
+    { id: 8, bank: 'Nubank',category: 'Category 8', description: 'Description 8', value: 800, date: '2025-01-12' },
+    { id: 9, bank: 'Nubank',category: 'Category 9', description: 'Description 9', value: 900, date: '2025-01-03' }
   ]);
 
   const addTransaction = (newTransaction: NewTransaction) => {
@@ -279,6 +285,7 @@ function FinancialTable() {
         <thead>
           <tr className="finantial-table-tr">
             <th>ID</th>
+            <th>Bank</th>
             <th>Category</th>
             <th>Description</th>
             <th>Value</th>
@@ -294,6 +301,7 @@ function FinancialTable() {
               className="clickable-row"
             >
               <td>{transaction.id}</td>
+              <td>{transaction.bank}</td>
               <td>{transaction.category}</td>
               <td>{transaction.description}</td>
               <td>${transaction.value.toFixed(2)}</td>
