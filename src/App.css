@@ -173,6 +173,34 @@
   margin-right: 0.5rem;
 }
 
+/* Monthly Total Summary Styles */
+.summary-section {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+}
+
+.monthly-total {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.monthly-total h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #495057;
+}
+
+.total-amount {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
 @media (prefers-color-scheme: dark) {
   .add-transaction-button {
     background-color: #3b82f6;

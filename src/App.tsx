@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './App.css';
 
+// Types
 interface Transaction {
   id: number;
   category: string;
@@ -9,20 +10,76 @@ interface Transaction {
   date: string;
 }
 
+type NewTransaction = Omit<Transaction, 'id'>;
+
+// Props interfaces
 interface ModalProps {
-  transaction: Transaction | null;
+  transaction: Transaction;
   onClose: () => void;
 }
 
-type NewTransaction = Omit<Transaction, 'id'>;
+interface TransactionFormProps {
+  onAdd: (transaction: NewTransaction) => void;
+  onClose: () => void;
+  editTransaction?: Transaction;
+}
 
+interface DeleteButtonProps {
+  transactionId: number;
+  onDelete: (id: number) => void;
+}
+
+interface EditButtonProps {
+  onClick: () => void;
+}
+
+// Reusable components
+const DeleteButton = ({ transactionId, onDelete }: DeleteButtonProps) => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      onDelete(transactionId);
+    }
+  };
+
+  return (
+    <button 
+      onClick={handleDelete}
+      className="delete-button"
+      aria-label="Delete transaction"
+    >
+      Delete
+    </button>
+  );
+};
+
+const EditButton = ({ onClick }: EditButtonProps) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClick();
+  };
+
+  return (
+    <button 
+      onClick={handleClick}
+      className="edit-button"
+      aria-label="Edit transaction"
+    >
+      <img 
+        src="/edit_ic.png"  
+        alt="Edit" 
+        className="edit-icon"
+      />
+    </button>
+  );
+};
+
+// Modal components
 function TransactionModal({ transaction, onClose }: ModalProps) {
-  if (!transaction) return null;
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>&times;</button>
+        <button className="modal-close" onClick={onClose} aria-label="Close modal">&times;</button>
         <h3>Transaction Details</h3>
         <div className="modal-details">
           <p><strong>ID:</strong> {transaction.id}</p>
@@ -36,52 +93,69 @@ function TransactionModal({ transaction, onClose }: ModalProps) {
   );
 }
 
-function TransactionForm({ onAdd, onClose }: { onAdd: (transaction: NewTransaction) => void, onClose: () => void }) {
-  const [formData, setFormData] = useState<NewTransaction>({
+function TransactionForm({ onAdd, onClose, editTransaction }: TransactionFormProps) {
+  const initialFormState: NewTransaction = {
     category: '',
     description: '',
     value: 0,
     date: new Date().toISOString().split('T')[0]
-  });
+  };
+
+  const [formData, setFormData] = useState<NewTransaction>(
+    editTransaction || initialFormState
+  );
+
+  useEffect(() => {
+    if (editTransaction) {
+      const { id, ...editData } = editTransaction;
+      setFormData(editData);
+    }
+  }, [editTransaction]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: type === 'number' ? parseFloat(value) : value
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAdd(formData);
-    setFormData({
-      category: '',
-      description: '',
-      value: 0,
-      date: new Date().toISOString().split('T')[0]
-    });
+    setFormData(initialFormState);
     onClose();
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>&times;</button>
+        <button className="modal-close" onClick={onClose} aria-label="Close form">&times;</button>
         <form onSubmit={handleSubmit} className="transaction-form">
-          <h3>Add New Transaction</h3>
+          <h3>{editTransaction ? 'Edit' : 'Add New'} Transaction</h3>
+          
           <div className="form-group">
             <label htmlFor="category">Category:</label>
             <input
               type="text"
               id="category"
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              onChange={handleChange}
               required
             />
           </div>
+          
           <div className="form-group">
             <label htmlFor="description">Description:</label>
             <input
               type="text"
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={handleChange}
               required
             />
           </div>
+          
           <div className="form-group">
             <label htmlFor="value">Value:</label>
             <input
@@ -89,47 +163,104 @@ function TransactionForm({ onAdd, onClose }: { onAdd: (transaction: NewTransacti
               id="value"
               step="0.01"
               value={formData.value}
-              onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })}
+              onChange={handleChange}
               required
             />
           </div>
+          
           <div className="form-group">
             <label htmlFor="date">Date:</label>
             <input
               type="date"
               id="date"
               value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onChange={handleChange}
               required
             />
           </div>
-          <button type="submit" className="submit-button">Add Transaction</button>
+          
+          <button type="submit" className="submit-button">
+            {editTransaction ? 'Update' : 'Add'} Transaction
+          </button>
         </form>
       </div>
     </div>
   );
 }
 
-function FinantialTable() {
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [isAddingTransaction, setIsAddingTransaction] = useState(false);
+// Custom hook for transaction management
+function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, category: 'Category 1', description: 'Description 1', value: 100, date: '2023-01-01' },
-    { id: 2, category: 'Category 2', description: 'Description 2', value: 200, date: '2023-01-02' },
-    { id: 3, category: 'Category 3', description: 'Description 3', value: 300, date: '2023-01-03' },
-    { id: 4, category: 'Category 4', description: 'Description 4', value: 400, date: '2023-01-04' },
-    { id: 5, category: 'Category 5', description: 'Description 5', value: 500, date: '2023-01-05' },
-    { id: 6, category: 'Category 6', description: 'Description 6', value: 600, date: '2023-01-06' },
-    { id: 7, category: 'Category 7', description: 'Description 7', value: 700, date: '2023-01-07' },
-    { id: 8, category: 'Category 8', description: 'Description 8', value: 800, date: '2023-01-08' }
+    { id: 1, category: 'Category 1', description: 'Description 1', value: 100, date: '2025-03-05' },
+    { id: 2, category: 'Category 2', description: 'Description 2', value: 200, date: '2025-03-06' },
+    { id: 3, category: 'Category 3', description: 'Description 3', value: 300, date: '2025-01-07' },
+    { id: 4, category: 'Category 4', description: 'Description 4', value: 400, date: '2025-01-08' },
+    { id: 5, category: 'Category 5', description: 'Description 5', value: 500, date: '2025-01-09' },
+    { id: 6, category: 'Category 6', description: 'Description 6', value: 600, date: '2025-01-10' },
+    { id: 7, category: 'Category 7', description: 'Description 7', value: 700, date: '2025-01-11' },
+    { id: 8, category: 'Category 8', description: 'Description 8', value: 800, date: '2025-01-12' },
+    { id: 9, category: 'Category 9', description: 'Description 9', value: 900, date: '2025-01-03' }
   ]);
 
-  const handleAddTransaction = (newTransaction: NewTransaction) => {
+  const addTransaction = (newTransaction: NewTransaction) => {
     const transaction: Transaction = {
       ...newTransaction,
       id: Math.max(0, ...transactions.map(t => t.id)) + 1
     };
-    setTransactions([...transactions, transaction]);
+    setTransactions(prev => [...prev, transaction]);
+  };
+
+  const updateTransaction = (updatedTransaction: Transaction) => {
+    setTransactions(prev => 
+      prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t)
+    );
+  };
+
+  const deleteTransaction = (id: number) => {
+    setTransactions(prev => prev.filter(t => t.id !== id));
+  };
+
+  const getCurrentMonthTotal = () => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    return transactions
+      .filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return transactionDate.getMonth() === currentMonth && 
+               transactionDate.getFullYear() === currentYear;
+      })
+      .reduce((total, transaction) => total + transaction.value, 0);
+  };
+
+  return {
+    transactions,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    getCurrentMonthTotal
+  };
+}
+
+function FinancialTable() {
+  const {
+    transactions, 
+    addTransaction, 
+    updateTransaction,
+    deleteTransaction, 
+    getCurrentMonthTotal
+  } = useTransactions();
+  
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isAddingTransaction, setIsAddingTransaction] = useState(false);
+
+  const handleEditSubmit = (editedData: NewTransaction) => {
+    if (editingTransaction) {
+      updateTransaction({ ...editedData, id: editingTransaction.id });
+      setEditingTransaction(null);
+    }
   };
 
   return (
@@ -152,6 +283,7 @@ function FinantialTable() {
             <th>Description</th>
             <th>Value</th>
             <th>Date</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -166,10 +298,21 @@ function FinantialTable() {
               <td>{transaction.description}</td>
               <td>${transaction.value.toFixed(2)}</td>
               <td>{new Date(transaction.date).toLocaleDateString()}</td>
+              <td onClick={e => e.stopPropagation()} className="action-buttons">
+                <EditButton onClick={() => setEditingTransaction(transaction)} />
+                <DeleteButton 
+                  transactionId={transaction.id} 
+                  onDelete={deleteTransaction} 
+                />
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {transactions.length === 0 && (
+        <div className="no-data">No transactions available</div>
+      )}
 
       {selectedTransaction && (
         <TransactionModal 
@@ -180,10 +323,25 @@ function FinantialTable() {
 
       {isAddingTransaction && (
         <TransactionForm 
-          onAdd={handleAddTransaction}
+          onAdd={addTransaction}
           onClose={() => setIsAddingTransaction(false)}
         />
       )}
+
+      {editingTransaction && (
+        <TransactionForm 
+          onAdd={handleEditSubmit}
+          onClose={() => setEditingTransaction(null)}
+          editTransaction={editingTransaction}
+        />
+      )}
+
+      <div className="summary-section">
+        <div className="monthly-total">
+          <h3>Current Month Total:</h3>
+          <span className="total-amount">${getCurrentMonthTotal().toFixed(2)}</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -191,9 +349,9 @@ function FinantialTable() {
 function App() {
   return (
     <div className="app">
-      <FinantialTable />
+      <FinancialTable />
     </div>
   );
 }
 
-export default App
+export default App;
