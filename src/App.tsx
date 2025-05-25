@@ -196,16 +196,18 @@ function TransactionForm({ onAdd, onClose, editTransaction }: TransactionFormPro
 
 // Custom hook for transaction management
 function useTransactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, bank: 'Nubank', category: 'Category 1', description: 'Description 1', value: 100, date: '2025-03-05' },
-    { id: 2, bank: 'Santander',category: 'Category 2', description: 'Description 2', value: 200, date: '2025-03-06' },
-    { id: 3, bank: 'Itau',category: 'Category 3', description: 'Description 3', value: 300, date: '2025-01-07' },
-    { id: 4, bank: 'Santander',category: 'Category 4', description: 'Description 4', value: 400, date: '2025-01-08' },
-    { id: 5, bank: 'Santander',category: 'Category 5', description: 'Description 5', value: 500, date: '2025-01-09' },
-    { id: 6, bank: 'Santander',category: 'Category 6', description: 'Description 6', value: 600, date: '2025-01-10' },
-    { id: 7, bank: 'Nubank',category: 'Category 7', description: 'Description 7', value: 700, date: '2025-01-11' },
-    { id: 8, bank: 'Nubank',category: 'Category 8', description: 'Description 8', value: 800, date: '2025-01-12' },
-    { id: 9, bank: 'Nubank',category: 'Category 9', description: 'Description 9', value: 900, date: '2025-01-03' }
+  const [transactions, setTransactions] = useState([
+    { id: 1, bank: 'Nubank', category: 'Category 1', description: 'Description 1', value: 100, date: '05/03/2025' },
+    { id: 11, bank: 'Nubank', category: 'Category 1', description: 'Description 1', value: 100, date: '05/05/2025' },
+    { id: 34, bank: 'Nubank', category: 'Category 1', description: 'Description 1', value: 100, date: '05/05/2025' },
+    { id: 2, bank: 'Santander', category: 'Category 2', description: 'Description 2', value: 200, date: '06/03/2025' },
+    { id: 3, bank: 'Itau', category: 'Category 3', description: 'Description 3', value: 300, date: '07/01/2025' },
+    { id: 4, bank: 'Santander', category: 'Category 4', description: 'Description 4', value: 400, date: '08/01/2025' },
+    { id: 5, bank: 'Santander', category: 'Category 5', description: 'Description 5', value: 500, date: '09/01/2025' },
+    { id: 6, bank: 'Santander', category: 'Category 6', description: 'Description 6', value: 600, date: '10/01/2025' },
+    { id: 7, bank: 'Nubank', category: 'Category 7', description: 'Description 7', value: 700, date: '11/01/2025' },
+    { id: 8, bank: 'Nubank', category: 'Category 8', description: 'Description 8', value: 800, date: '12/01/2025' },
+    { id: 9, bank: 'Nubank', category: 'Category 9', description: 'Description 9', value: 900, date: '03/01/2025' }
   ]);
 
   const addTransaction = (newTransaction: NewTransaction) => {
@@ -231,13 +233,17 @@ function useTransactions() {
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
 
-    return transactions
-      .filter(transaction => {
-        const transactionDate = new Date(transaction.date);
-        return transactionDate.getMonth() === currentMonth && 
-               transactionDate.getFullYear() === currentYear;
-      })
-      .reduce((total, transaction) => total + transaction.value, 0);
+    const currentMonthTransactions = transactions.filter(transaction => {
+      // Convert Brazilian format back to Date object for comparison
+      const [day, month, year] = transaction.date.split('/');
+      const transactionDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      console.log(transactionDate)
+      
+      return transactionDate.getMonth() === currentMonth && 
+             transactionDate.getFullYear() === currentYear;
+    });
+  
+    return currentMonthTransactions.reduce((total, transaction) => total + transaction.value, 0);
   };
 
   return {
@@ -305,7 +311,7 @@ function FinancialTable() {
               <td>{transaction.category}</td>
               <td>{transaction.description}</td>
               <td>${transaction.value.toFixed(2)}</td>
-              <td>{new Date(transaction.date).toLocaleDateString()}</td>
+              <td>{transaction.date}</td>
               <td onClick={e => e.stopPropagation()} className="action-buttons">
                 <EditButton onClick={() => setEditingTransaction(transaction)} />
                 <DeleteButton 
